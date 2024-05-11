@@ -23,6 +23,35 @@ def get_movie():
     -------------------------------------------------------
     """
 
+    #creates a movie object by requesting data from a user.
+
+    #title
+    title = input("Title: ")
+
+    #year of release
+    year = int(input("Year of release: "))
+
+    #director
+    director = input("Director: ")
+
+    #rating
+
+    rating = float(input("Rating: "))
+    while rating < 0 or rating > 10:
+        print("Error: rating must be between 0 and 10")
+        rating = float(input("Rating: "))
+
+
+    #genre
+    genres = read_genres()
+
+    genre_number = int(input("Enter a genre number (ENTER to Quit): "))
+
+
+
+    movie = Movie(title, year, director, rating, genres)
+
+
     # Your code here
 
     return movie
@@ -42,8 +71,10 @@ def read_movie(line):
     -------------------------------------------------------
     """
 
-    # Your code here
-
+    #creates and returns a movie object from a line of formatted string data
+    parts = line.strip().split('|')
+    title, year, director, rating, genres = parts[0], int(parts[1]), parts[2], float(parts[3]), list(map(int, parts[4].split(',')))
+    movie = Movie(title, year, director, rating, genres)
     return movie
 
 
@@ -60,8 +91,12 @@ def read_movies(fv):
     -------------------------------------------------------
     """
 
-    # Your code here
+    #reads a file of string data into a list of movie objects
 
+    movies = []
+    for line in fv:
+        movie = read_movie(line)
+        movies.append(movie)
     return movies
 
 
@@ -76,10 +111,20 @@ def read_genres():
         genres - sorted numeric list of movie genres (list of int)
     -------------------------------------------------------
     """
-
-    # Your code here
-
-    return genres
+    #print genres
+    genres_menu = Movie.genres_menu()
+    print(genres_menu)
+    selected_genres = []
+    choice = input("Enter genre numbers separated by commas or ENTER to finish: ")
+    while choice:
+        genre_numbers = list(map(int, choice.split(',')))
+        for num in genre_numbers:
+            if 1 <= num <= len(Movie.GENRES):
+                selected_genres.append(num)
+            else:
+                print("Invalid genre number")
+        choice = input("Add more genres or ENTER to finish: ")
+    return sorted(set(selected_genres))
 
 
 def write_movies(fv, movies):
@@ -96,6 +141,8 @@ def write_movies(fv, movies):
         None
     -------------------------------------------------------
     """
+    for movie in movies:
+        fv.write(f"{movie.title}|{movie.year}|{movie.director}|{movie.rating}|{','.join(map(str, movie.genres))}\n")
 
     # Your code here
 
@@ -118,7 +165,7 @@ def get_by_year(movies, year):
     -------------------------------------------------------
     """
 
-    # Your code here
+    ymovies = [movie for movie in movies if movie.year == year]
 
     return ymovies
 
@@ -140,7 +187,7 @@ def get_by_rating(movies, rating):
     -------------------------------------------------------
     """
 
-    # Your code here
+    rmovies = [movie for movie in movies if movie.rating >= rating]
 
     return rmovies
 
@@ -161,7 +208,7 @@ def get_by_genre(movies, genre):
     -------------------------------------------------------
     """
 
-    # Your code here
+    gmovies = [movie for movie in movies if genre in movie.genres]
 
     return gmovies
 
@@ -182,6 +229,7 @@ def get_by_genres(movies, genres):
             all the genres in genres (list of Movie)
     -------------------------------------------------------
     """
+    gmovies = [movie for movie in movies if all(g in movie.genres for g in genres)]
 
     # Your code here
 
@@ -203,6 +251,10 @@ def genre_counts(movies):
             the matching genre in Movie.GENRES. (list of int)
     -------------------------------------------------------
     """
+    counts = [0] * len(Movie.GENRES)
+    for movie in movies:
+        for genre in movie.genres:
+            counts[genre - 1] += 1  # assuming genre codes are 1-based
 
     # Your code here
 
