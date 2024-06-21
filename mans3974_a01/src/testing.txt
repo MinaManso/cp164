@@ -1,0 +1,42 @@
+t05
+---------------------------------------------------
+[[1, 2], [3, 4]] -> [1, 2, 3, 4] (expected [1, 2, 3, 4])
+All tests passed
+[[1], [2], [3]] -> [1, 2, 3] (expected [1, 2, 3])
+All tests passed
+[[]] -> [] (expected [])
+All tests passed
+[[], []] -> [] (expected [])
+All tests passed
+[[1, 2, 3]] -> [1, 2, 3] (expected [1, 2, 3])
+All tests passed
+
+t06
+---------------------------------------------------
+Test passed. Multiplied: [[4, 4], [10, 8]]
+Test passed. Multiplied: [[14]]
+Test passed. Multiplied: [[4, 1], [2, 2]]
+Test passed. Multiplied: []
+
+t07
+---------------------------------------------------
+Test passed for matrix [[1, 2], [3, 4]]. Rotated Right: [[3, 1], [4, 2]]
+Test passed for matrix [[1, 2, 3], [4, 5, 6]]. Rotated Right: [[4, 1], [5, 2], [6, 3]]
+Test passed for matrix [[1]]. Rotated Right: [[1]]
+Test passed for matrix []. Rotated Right: []
+
+t08
+---------------------------------------------------
+Test passed for word 'apple'. Pig Latin: 'appleway'
+Test passed for word 'banana'. Pig Latin: 'ananabay'
+Test passed for word 'Cherry'. Pig Latin: 'Errychay'
+Test passed for word 'eat'. Pig Latin: 'eatway'
+Test passed for word 'smile'. Pig Latin: 'ilesmay'
+
+---------------------------------------------------
+Test passed for string 'hello world'. Enciphered: 'SVOOL DLIOW'
+Test passed for string 'abcdef'. Enciphered: 'BCDEFG'
+Traceback (most recent call last):
+  File "c:\Users\matio\OneDrive\Desktop\cp164\mans3974_a01\src\t09.py", line 26, in <module>
+    assert result == expected, f"Test failed for string '{string}'. Expected '{expected}', got '{result}'"
+AssertionError: Test failed for string '123 hello, world!'. Expected '123 IBCDD, VMQKC!', got '123 IFMMP, XPSME!'

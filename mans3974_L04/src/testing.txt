@@ -1,0 +1,121 @@
+
+    lst = List()
+
+    # Test is_empty on an empty list
+    print("Test is_empty on empty list:", lst.is_empty())
+
+    # Test append and __len__
+    for value in source:
+        lst.append(value)
+    print("List after appending values:", list(lst))
+    print("Length of list after appending values:", len(lst))
+
+    # Test __getitem__
+    for i in range(len(lst)):
+        print(f"Element at index {i}:", lst[i])
+
+    # Test __setitem__
+    lst[0] = source[-1]
+    print("List after setting first element to last value in source:", list(lst))
+
+    # Test __contains__
+    key = source[1]
+    print(f"List contains {key}:", key in lst)
+
+    # Test find
+    print(f"Find value {key} in list:", lst.find(key))
+
+    # Test index
+    print(f"Index of value {key} in list:", lst.index(key))
+
+    # Test max and min
+    print("Maximum value in list:", lst.max())
+    print("Minimum value in list:", lst.min())
+
+    # Test count
+    print(f"Count of value {key} in list:", lst.count(key))
+
+    # Test remove
+    print(f"Remove value {key} from list:", lst.remove(key))
+    print("List after removing value:", list(lst))
+
+    # Test pop
+    print("Pop last value from list:", lst.pop())
+    print("List after popping last value:", list(lst))
+    
+    # Test prepend
+    lst.prepend(source[0])
+    print("List after prepending value:", list(lst))
+
+    # Test peek
+    print("Peek first value in list:", lst.peek())
+
+    # Test reverse
+    lst.reverse()
+    print("List after reversing:", list(lst))
+
+    # Test copy
+    copied_lst = lst.copy()
+    print("Copied list:", list(copied_lst))
+
+    # Test clean
+    lst.append(source[1])
+    lst.append(source[1])
+    print("List before cleaning duplicates:", list(lst))
+    lst.clean()
+    print("List after cleaning duplicates:", list(lst))
+
+    # Test split
+    lst1, lst2 = lst.split()
+    print("List after splitting into two lists:")
+    print("First half:", list(lst1))
+    print("Second half:", list(lst2))
+
+    # Test split_alt
+    lst.combine(lst1, lst2)
+    lst1, lst2 = lst.split_alt()
+    print("List after alternate splitting:")
+    print("First alternate list:", list(lst1))
+    print("Second alternate list:", list(lst2))
+
+    # Test split_apply
+    def is_even(n):
+        return n % 2 == 0
+
+    lst.combine(lst1, lst2)
+    lst1, lst2 = lst.split_apply(is_even)
+    print("List after splitting with function:")
+    print("List with even values:", list(lst1))
+    print("List with odd values:", list(lst2))
+
+    # Test split_key
+    key = source[2]
+    lst.combine(lst1, lst2)
+    lst1, lst2 = lst.split_key(key)
+    print("List after splitting by key:")
+    print(f"List with values < {key}:", list(lst1))
+    print(f"List with values >= {key}:", list(lst2))
+
+    # Test union
+    lst.union(lst1, lst2)
+    print("List after union of two lists:", list(lst))
+
+    # Test apply
+    def square(n):
+        return n * n
+
+    lst.apply(square)
+    print("List after applying square function:", list(lst))
+
+    # Test insert
+    insert_index = 1
+    insert_value = source[0]
+    lst.insert(insert_index, insert_value)
+    print(f"List after inserting {insert_value} at index {insert_index}:", list(lst))
+
+    return
+
+# Testing the list_test function with some sample data
+if __name__ == "__main__":
+    source = [1, 2, 3, 4, 5]
+    list_test(source)

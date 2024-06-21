@@ -1,0 +1,28 @@
+t01
+Target 1 stack: [9, 7, 5, 3, 1]
+Target 2 stack: [10, 8, 6, 4, 2]
+
+
+t02
+
+Target 1 stack: [9, 7, 5, 3, 1]
+Target 2 stack: [10, 8, 6, 4, 2]
+
+
+t03
+
+Original stack: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+Reversed stack: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+
+t04
+
+Original stack: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+Reversed stack: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+t05
+
+Result of '3 4 + 2 * 7 /' is 2.0
+
+t06
+Result of reroute with 'SSXSXSX' and [1, 2, 3, 4] is [2, 3, 4]
