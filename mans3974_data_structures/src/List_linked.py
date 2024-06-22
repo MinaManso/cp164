@@ -1375,7 +1375,7 @@ class List:
         return target1, target2
 
 
-    def split_alt_r(self, target1, target2, to_target1):
+    def split_alt_r(self):
         """
         -------------------------------------------------------
         Splits the source list into separate target lists with values
@@ -1389,17 +1389,164 @@ class List:
             target2 - contains other alternating values from source (List)
         -------------------------------------------------------
         """
-        if self._front is not None:
-            if to_target1:
-                target1._move_front_to_rear(self)
-            
+        target1 = List()
+        target2 = List()
+        self._split_alt_r_aux(self._front, target1, target2, True)
+
+        self._front = None
+        self._rear = None
+        self._count = 0
+
+        return target1, target2
+
+    def split_alt_r_aux(self, current, target1, target2, to_target1):
+        if current is None:
+            return
+
+        next_node = current._next
+        current._next = None
+
+        if to_target1:
+            # Move current node to target1's rear
+            if target1._rear:
+                target1._rear._next = current
             else:
-                target2._move_front_to_rear(self)
-            
-            self.split_alt_r(target1, target2, not to_target1)
+                target1._front = current
+            target1._rear = current
+        else:
+            # Move current node to target2's rear
+            if target2._rear:
+                target2._rear._next = current
+            else:
+                target2._front = current
+            target2._rear = current
+
+        # Detach the current node from its next
+        current._next = None
+
+        # Update count for target lists
+        if to_target1:
+            target1._count += 1
+        else:
+            target2._count += 1
+
+        # Recursively handle the rest of the list
+        self._split_recursive(next_node, target1, target2, not to_target1)
+
+
+
+    def intersection(self, source1, source2):
+        """
+        -------------------------------------------------------
+        Update the current list with values that appear in both
+        source1 and source2. Values do not repeat.
+        (iterative algorithm)
+        Use: target.intersection(source1, source2)
+        -------------------------------------------------------
+        Parameters:
+            source1 - a linked list (List)
+            source2 - a linked list (List)
+        Returns:
+            None
+        -------------------------------------------------------
+        """
+        source1_node = source1._front
+
+        while source1_node is not None:
+            value = source1_node._value
+            _, current, _ = source2._linear_search(value)
+
+            if current is not None:
+                # Value exists in both source lists.
+                _, current, _ = self._linear_search(value)
+
+                if current is None:
+                    # Value does not appear in target list.
+                    self.append(value)
+
+            source1_node = source1_node._next
+        return
+
+    def intersection_r(self, source1, source2):
+        """
+        -------------------------------------------------------
+        Update the current list with values that appear in both
+        source1 and source2. Values do not repeat.
+        (recursive algorithm)
+        Use: target.intersection(source1, source2)
+        -------------------------------------------------------
+        Parameters:
+            source1 - a linked list (List)
+            source2 - a linked list (List)
+        Returns:
+            None
+        -------------------------------------------------------
+        """
+        self._front = None
+        self._rear = None
+        self._count = 0
+
+        # Start the recursive intersection process
+        self._intersection_recursive(source1._front, source2)
+
+    def _intersection_recursive(self, current1, source2):
+        if current1 is None:
+            return  # Base case: end of source1
+
+        # Check if the current value in source1 is in source2
+        _, found_in_source2, _ = source2._linear_search(current1._value)
+
+        if found_in_source2:
+            # Check if it's already in the current list to avoid duplicates
+            _, found_in_self, _ = self._linear_search(current1._value)
+
+            if not found_in_self:
+                # Append to the current list if not already included
+                self.append(current1._value)
+
+        # Recursive call with the next node in source1
+        self._intersection_recursive(current1._next, source2)
+
 
             
+    def union(self, source1, source2):
+        """
+        -------------------------------------------------------
+        Update the current list with all values that appear in
+        source1 and source2. Values do not repeat.
+        (iterative algorithm)
+        Use: target.union(source1, source2)
+        -------------------------------------------------------
+        Parameters:
+            source1 - an linked list (List)
+            source2 - an linked list (List)
+        Returns:
+            None
+        -------------------------------------------------------
+        """
+        source1_node = source1._front
 
+        while source1_node is not None:
+            value = source1_node._value
+            _, current, _ = self._linear_search(value)
+
+            if current is None:
+                # Value does not exist in new list.
+                self.append(value)
+            source1_node = source1_node._next
+
+        source2_node = source2._front
+
+        while source2_node is not None:
+            value = source2_node._value
+            _, current, _ = self._linear_search(value)
+
+            if current is None:
+                # Value does not exist in current list.
+                self.append(value)
+
+            source2_node = source2_node._next
+        return
 
         
     
