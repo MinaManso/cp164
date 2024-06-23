@@ -1520,6 +1520,54 @@ class List:
             source2_node = source2_node._next
         return
 
+    def union_r(self, source1, source2):
+        """
+        -------------------------------------------------------
+        Update the current list with all values that appear in
+        source1 and source2. Values do not repeat.
+        (recursive algorithm)
+        Use: target.union(source1, source2)
+        -------------------------------------------------------
+        Parameters:
+            source1 - an linked list (List)
+            source2 - an linked list (List)
+        Returns:
+            None
+        -------------------------------------------------------
+        """
+        self._front = None
+        self._rear = None
+        self._count = 0
+
+        # Start the recursive union process
+        self._union_recursive(source1._front, source2._front)
+
+    def _union_recursive(self, current1, current2):
+        if current1 is not None:
+            # Check if the current value in source1 is already in the current list
+            _, found_in_self, _ = self._linear_search(current1._value)
+
+            if not found_in_self:
+                # Append to the current list if not already included
+                self.append(current1._value)
+
+            # Recursive call with the next node in source1
+            self._union_recursive(current1._next, current2)
+
+        if current2 is not None:
+            # Check if the current value in source2 is already in the current list
+            _, found_in_self, _ = self._linear_search(current2._value)
+
+            if not found_in_self:
+                # Append to the current list if not already included
+                self.append(current2._value)
+
+            # Recursive call with the next node in source2
+            self._union_recursive(None, current2._next)
+        return
+    
+    
+
         
     def reverse(self):
         """
