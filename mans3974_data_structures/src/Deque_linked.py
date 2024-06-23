@@ -61,7 +61,7 @@ class Deque:
         -------------------------------------------------------
         """
         # your code here
-        return
+        return self._front is None
 
     def __len__(self):
         """
@@ -74,7 +74,7 @@ class Deque:
         -------------------------------------------------------
         """
         # your code here
-        return
+        return self._count
 
     def __eq__(self, target):
         """
@@ -91,8 +91,20 @@ class Deque:
                 as target in the same order, otherwise False. (boolean)
         -------------------------------------------------------
         """
+        if self._count != target._count:
+            return False
+        
+        current = self._front
+        target_current = target._front
+
+        while current is not None:
+            if current._value != target_current._value:
+                return False
+            current = current._next
+            target_current = target_current._next
+
         # your code here
-        return
+        return True
 
     def insert_front(self, value):
         """
@@ -106,7 +118,13 @@ class Deque:
             None
         -------------------------------------------------------
         """
-        # your code here
+        new_node = _Deque_Node(value, None, self._front)
+        if self._front is None:
+            self._rear = new_node
+        else:
+            self._front._prev = new_node
+        self._front = new_node
+        self._count += 1
         return
 
     def insert_rear(self, value):
@@ -121,7 +139,13 @@ class Deque:
             None
         -------------------------------------------------------
         """
-        # your code here
+        new_node = _Deque_Node(value, self._rear, None)
+        if self._rear is None:
+            self._front = new_node
+        else:
+            self._rear._next = new_node
+        self._rear = new_node
+        self._count += 1
         return
 
     def remove_front(self):
@@ -136,8 +160,14 @@ class Deque:
         """
         assert self._front is not None, "Cannot remove from an empty deque"
         
-        # your code here
-        return
+        node = self._front
+        value = node._value
+        self._front = self._front._next
+        if self._front is None:
+            self._rear = None
+        else:
+            self._front._prev = None
+        self._count -= 1
         return value
 
     def remove_rear(self):
@@ -152,8 +182,15 @@ class Deque:
         """
         assert self._rear is not None, "Cannot remove from an empty deque"
 
-        # your code here
-        return
+        node = self._rear
+        value = node._value
+        self._rear = self._rear._prev
+        if self._rear is None:
+            self._front = None
+        else:
+            self._rear._next = None
+        self._count -= 1
+        return value
 
     def peek_front(self):
         """
@@ -168,7 +205,7 @@ class Deque:
         assert self._front is not None, "Cannot peek at an empty deque"
 
         # your code here
-        return
+        return deepcopy(self._front._value)
 
     def peek_rear(self):
         """
@@ -183,7 +220,7 @@ class Deque:
         assert self._rear is not None, "Cannot peek at an empty deque"
 
         # your code here
-        return
+        return deepcopy(self._rear._value)
 
     def _swap(self, l, r):
         """
@@ -202,7 +239,25 @@ class Deque:
         """
         assert l is not None and r is not None, "nodes to swap cannot be None"
 
-        # your code here
+        l._next, r._next = r._next, l._next
+        l._prev, r._prev = r._prev, l._prev
+        if l._next is not None:
+            l._next._prev = l
+        if r._next is not None:
+            r._next._prev = r
+        if l._prev is not None:
+            l._prev._next = l
+        if r._prev is not None:
+            r._prev._next = r
+        if self._front == l:
+            self._front = r
+        elif self._front == r:
+            self._front = l
+        if self._rear == l:
+            self._rear = r
+        elif self._rear == r:
+            self._rear = l
+        
         return
 
     def __iter__(self):
