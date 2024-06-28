@@ -82,7 +82,7 @@ class ByLetter:
 
         # Your code here
 
-        return
+        return self.letter == target.letter
 
 
     def __lt__(self, target):
@@ -101,7 +101,7 @@ class ByLetter:
 
         # Your code here
 
-        return
+        return self.letter < target.letter
 
     def __le__(self, target):
         """
@@ -119,7 +119,7 @@ class ByLetter:
 
         # Your code here
 
-        return
+        return self.letter <= target.letter
 
     def __str__(self):
         """
@@ -176,7 +176,8 @@ class ByCode:
 
         # Your code here
 
-        return
+
+        return self.code == target.code
 
     def __lt__(self, target):
         """
@@ -194,7 +195,7 @@ class ByCode:
 
         # Your code here
 
-        return
+        return self.code < target.code
 
     def __le__(self, target):
         """
@@ -212,7 +213,7 @@ class ByCode:
 
         # Your code here
 
-        return
+        return self.code <= target.code
 
     def __str__(self):
         """
@@ -242,6 +243,8 @@ def fill_letter_bst(bst, values):
         None
     -------------------------------------------------------
     """
+    for letter, code in values:
+        bst.insert(ByLetter(letter, code))
 
     # Your code here
 
@@ -262,6 +265,8 @@ def fill_code_bst(bst, values):
         None
     -------------------------------------------------------
     """
+    for letters, code in values:
+        bst.insert(ByCode(letters, code))
 
     # Your code here
 
@@ -281,10 +286,30 @@ def encode_morse(bst, text):
         result - Morse code version of text (str)
     -------------------------------------------------------
     """
+    result = []
+    text = text.upper()
+    previous_char = ''  # Track previous character to handle spaces correctly
 
-    # Your code here
+    for char in text:
+        if char.isalpha():
+            node = bst.retrieve(ByLetter(char, ''))
+            if node:
+                # Append Morse code for the letter followed by a space to separate from next Morse symbol
+                result.append(node.code + ' ')
+            previous_char = char
+        elif char == ' ':
+            if previous_char != ' ':  # Check if the previous character was not a space
+                # Append '/' to denote a space between words but only if the last character wasn't already a space
+                result.append('/ ')
+            previous_char = char
+        # For punctuation or other characters, do nothing or handle accordingly
 
-    return
+    # Join all the parts together and strip the trailing space if present
+    morse_code = ''.join(result).strip()
+    # Ensure no trailing space after the last Morse code symbol
+    if morse_code.endswith(' '):
+        morse_code = morse_code[:-1]
+    return morse_code
 
 
 def decode_morse(bst, code):
@@ -300,7 +325,17 @@ def decode_morse(bst, code):
         result - English version of code (str)
     -------------------------------------------------------
     """
+    result = []
+    words = code.split(' / ')  # Split Morse code into words based on slash
 
-    # Your code here
+    for word in words:
+        letters = word.split()  # Split each word into its Morse letters
+        for letter_code in letters:
+            node = bst.retrieve(ByCode('', letter_code))
+            if node:
+                result.append(node.letter)
+        result.append(' ')  # Add a space after each word
 
-    return
+    return ''.join(result).strip()
+
+    

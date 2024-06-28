@@ -470,7 +470,13 @@ class BST:
         assert self._root is not None, "Cannot find maximum of an empty BST"
 
 
-        # your code here
+        def recurse_max(node):
+            if node._right is None:
+                return node._value
+            else:
+                return recurse_max(node._right)
+
+        return recurse_max(self._root)
 
 
     def min(self):
@@ -485,7 +491,10 @@ class BST:
         """
         assert self._root is not None, "Cannot find minimum of an empty BST"
 
-        # your code here
+        current = self._root
+        while current._left:
+            current = current._left
+        return current._value
 
 
     def min_r(self):
@@ -500,7 +509,13 @@ class BST:
         """
         assert self._root is not None, "Cannot find minimum of an empty BST"
 
-        # your code here
+        def recurse_min(node):
+            if node._left is None:
+                return node._value
+            else:
+                return recurse_min(node._left)
+
+        return recurse_min(self._root)
 
 
     def leaf_count(self):
@@ -514,7 +529,15 @@ class BST:
         ---------------------------------------------------------
         """
 
-        # your code here
+        def count_leaves(node):
+            if node is None:
+                return 0
+            elif not node._left and not node._right:
+                return 1
+            else:
+                return count_leaves(node._left) + count_leaves(node._right)
+
+        return count_leaves(self._root)
 
 
     def two_child_count(self):
@@ -528,7 +551,15 @@ class BST:
         ----------------------------------------------------------
         """
 
-        # your code here
+        def count_two_children(node):
+            if node is None:
+                return 0
+            elif node._left and node._right:
+                return 1 + count_two_children(node._left) + count_two_children(node._right)
+            else:
+                return count_two_children(node._left) + count_two_children(node._right)
+
+        return count_two_children(self._root)
 
 
     def one_child_count(self):
@@ -542,7 +573,15 @@ class BST:
         ----------------------------------------------------------
         """
 
-        # your code here
+        def count_one_child(node):
+            if node is None:
+                return 0
+            elif (node._left and not node._right) or (not node._left and node._right):
+                return 1 + count_one_child(node._left) + count_one_child(node._right)
+            else:
+                return count_one_child(node._left) + count_one_child(node._right)
+
+        return count_one_child(self._root)
 
 
     def node_counts(self):
@@ -558,7 +597,24 @@ class BST:
         ----------------------------------------------------------
         """
 
-        # your code here
+        zero, one, two = 0, 0, 0
+        def count_nodes(node):
+            nonlocal zero, one, two
+            if node is None:
+                return
+            left = node._left
+            right = node._right
+            if not left and not right:
+                zero += 1
+            elif left and right:
+                two += 1
+            else:
+                one += 1
+            count_nodes(left)
+            count_nodes(right)
+
+        count_nodes(self._root)
+        return zero, one, two
 
 
     def is_balanced(self):
@@ -573,7 +629,17 @@ class BST:
         ---------------------------------------------------------
         """
 
-        # your code here
+        def check_balance(node):
+            if node is None:
+                return 0, True
+            left_height, left_balanced = check_balance(node._left)
+            right_height, right_balanced = check_balance(node._right)
+            balanced = (left_balanced and right_balanced and abs(left_height - right_height) <= 1)
+            height = 1 + max(left_height, right_height)
+            return height, balanced
+
+        _, balance = check_balance(self._root)
+        return balance
 
 
     def _node_height(self, node):
@@ -608,7 +674,17 @@ class BST:
         -------------------------------------------------------
         """
 
-        # your code here
+        def retrieve_recursive(node, key):
+            if node is None:
+                return None
+            elif key < node._value:
+                return retrieve_recursive(node._left, key)
+            elif key > node._value:
+                return retrieve_recursive(node._right, key)
+            else:
+                return node._value
+
+        return retrieve_recursive(self._root, key)
 
 
     def is_valid(self):
@@ -625,7 +701,16 @@ class BST:
         ---------------------------------------------------------
         """
 
-        # your code here
+        def is_valid_node(node, low, high):
+            if node is None:
+                return True
+            elif not (low < node._value < high):
+                return False
+            else:
+                return (is_valid_node(node._left, low, node._value) and
+                        is_valid_node(node._right, node._value, high))
+
+        return is_valid_node(self._root, float('-inf'), float('inf'))
 
 
     def inorder(self):
@@ -639,8 +724,11 @@ class BST:
         -------------------------------------------------------
         """
 
-        # your code here
+        def inorder_recursive(node):
+            return (inorder_recursive(node._left) + [node._value] + 
+                    inorder_recursive(node._right)) if node else []
 
+        return inorder_recursive(self._root)
 
     def preorder(self):
         """
@@ -653,7 +741,11 @@ class BST:
         -------------------------------------------------------
         """
 
-        # your code here
+        def preorder_recursive(node):
+            return ([node._value] + preorder_recursive(node._left) +
+                    preorder_recursive(node._right)) if node else []
+
+        return preorder_recursive(self._root)
 
 
     def postorder(self):
@@ -667,7 +759,11 @@ class BST:
         -------------------------------------------------------
         """
 
-        # your code here
+        def postorder_recursive(node):
+            return (postorder_recursive(node._left) +
+                    postorder_recursive(node._right) + [node._value]) if node else []
+
+        return postorder_recursive(self._root)
 
 
     def levelorder(self):
@@ -682,7 +778,16 @@ class BST:
         -------------------------------------------------------
         """
 
-        # your code here
+        values = []
+        queue = [self._root] if self._root else []
+        while queue:
+            node = queue.pop(0)
+            values.append(node._value)
+            if node._left:
+                queue.append(node._left)
+            if node._right:
+                queue.append(node._right)
+        return values
 
 
     def count(self):
@@ -696,7 +801,13 @@ class BST:
         ----------------------------------------------------------
         """
 
-        # your code here
+        def count_nodes(node):
+            if not node:
+                return 0
+            else:
+                return 1 + count_nodes(node._left) + count_nodes(node._right)
+
+        return count_nodes(self._root)
 
 
     def __iter__(self):
