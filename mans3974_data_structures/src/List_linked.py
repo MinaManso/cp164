@@ -248,17 +248,22 @@ class List:
         current = self._front
         previous = None
         while current is not None:
+            next_node = current._next  # Keep track of the next node
             if current._value == key:
                 if previous is None:
-                    self._front = current._next
+                    # Removing the first node
+                    self._front = next_node
+                    if self._front is None:
+                        self._rear = None  # If the list becomes empty
                 else:
-                    previous._next = current._next
-                if current._next is None:
-                    self._rear = previous
+                    # Link previous node to the next, skipping current
+                    previous._next = next_node
+                    if next_node is None:
+                        self._rear = previous  # Update rear if the last node was removed
                 self._count -= 1
             else:
-                previous = current
-        current = current._next
+                previous = current  # Move previous only if not removed
+            current = next_node 
 
     def find(self, key):
         """
@@ -695,51 +700,45 @@ class List:
             target2 - a new List with <= 50% of the original List (List)
         -------------------------------------------------------
         """
-        slow = self._front
-        fast = self._front
-        prev = None
-    
-        # Using the tortoise and hare algorithm to find the middle of the list
-        while fast and fast._next:
-            prev = slow
-            slow = slow._next
-            fast = fast._next._next
-    
-        # Create two new lists
         target1 = List()
         target2 = List()
     
-        # Set the first part
-        target1._front = self._front
-        target1._rear = prev
-        if prev:
-            prev._next = None  # Split the list
+        if self._front is not None:  # Ensure there are elements to split
+            slow = self._front
+            fast = self._front._next  # Start fast one step ahead
     
-        # Set the second part
-        target2._front = slow
-        if slow:
-            current = slow
-            while current._next:
+            # Use fast to find the middle of the list, slow will end at the middle
+            while fast is not None and fast._next is not None:
+                fast = fast._next._next
+                slow = slow._next
+    
+            # Setup target1
+            target1._front = self._front
+            target1._rear = slow
+            target1._count = 0
+            current = target1._front
+    
+            # Count the nodes in target1 and disconnect the half
+            while current != target1._rear:
+                target1._count += 1
                 current = current._next
-            target2._rear = current
+            target1._count += 1  # Include the rear node
+            target2._front = slow._next
+            target1._rear._next = None  # This is the new end of target1
     
-        # Reset the original list
+            # Setup target2
+            current = target2._front
+            target2._rear = None
+            target2._count = 0
+            while current is not None:
+                target2._rear = current
+                target2._count += 1
+                current = current._next
+    
+        # Clear the original list
         self._front = None
         self._rear = None
         self._count = 0
-    
-        # Calculate counts for new lists
-        if target1._front:
-            current = target1._front
-            while current:
-                target1._count += 1
-                current = current._next
-    
-        if target2._front:
-            current = target2._front
-            while current:
-                target2._count += 1
-                current = current._next
     
         return target1, target2
 
@@ -1614,5 +1613,7 @@ class List:
         next_node = current._next
         current._next = previous
         return self._reverse_recursive(next_node, current)
+    
+    
     
     
