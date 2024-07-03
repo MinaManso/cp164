@@ -249,6 +249,7 @@ Genres:   {}""".format(self.title, self.year, self.director, self.rating, genres
         Use: h = hash(movie)
         -------------------------------------------------------
         Returns:
+            returns
             value - the total of the characters in the name string
                 multiplied by the year (int > 0)
         -------------------------------------------------------

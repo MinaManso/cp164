@@ -10,8 +10,7 @@ __updated__ = "2023-07-11"
 """
 # Imports
 from copy import deepcopy
-from pickle import NONE, TRUE
-from sqlalchemy.sql._elements_constructors import true
+
 
 
 class _BST_Node:
@@ -366,15 +365,19 @@ class BST:
                 as target in the same location, otherwise False. (boolean)
         -------------------------------------------------------
         """
-        def equals(node1, node2):
+        def _eq_aux(node1, node2):
             if node1 is None and node2 is None:
-                return true
-            elif node1 is not None and node2 is not None and node1._value == node2._value:
-                return equals(node1._left, node2.left) and equals(node1._right, node2._right)
-        # your code here
-            else:
+                return True
+            elif node1 is None or node2 is None:
                 return False
-        return equals(self._root, target._root)
+            else:
+                return (node1._value == node2._value and
+                        _eq_aux(node1._left, node2._left) and
+                        _eq_aux(node1._right, node2._right))
+            
+        return self._eq_aux(self._root, target._root)
+
+
 
     def parent(self, key):
         """

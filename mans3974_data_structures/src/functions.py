@@ -416,3 +416,30 @@ def bag_to_set(bag):
     
     result = helper(bag, [])
     return result
+
+
+
+def hash_table(slots, values):
+    """
+    -------------------------------------------------------
+    Print a hash table of a set of values. The format is:
+Hash     Slot Key
+-------- ---- --------------------
+ 1652346    3 Dark City, 1998
+  848448    6 Zulu, 1964
+    Do not create an actual Hash_Set.
+    Use: hash_table(slots, values)
+    -------------------------------------------------------
+    Parameters:
+       slots - the number of slots available (int > 0)
+       values - the values to hash (list of ?)
+    Returns:
+       None
+    -------------------------------------------------------
+    """
+    print("{:>8} {:>4} {}".format("Hash", "Slot", "Key"))
+    print("-" * 40)
+    for value in values:
+        hash_value = hash(value)
+        slot = hash_value % slots
+        print("{:>8} {:>4} {}".format(hash_value, slot, value))
