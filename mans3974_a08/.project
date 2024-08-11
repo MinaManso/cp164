@@ -3,6 +3,7 @@
 	<name>mans3974_a08</name>
 	<comment></comment>
 	<projects>
+		<project>mans3974_data_structures</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

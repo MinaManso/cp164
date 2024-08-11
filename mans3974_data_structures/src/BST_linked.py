@@ -5,12 +5,14 @@ Linked version of the BST ADT.
 Author:  David Brown
 ID:      999999999
 Email:   dbrown@wlu.ca
-__updated__ = "2023-07-11"
+Section: CP164 A
+__updated__ = "2020-03-06"
 -------------------------------------------------------
 """
+# pylint: disable=W0212
+
 # Imports
 from copy import deepcopy
-
 
 
 class _BST_Node:
@@ -18,20 +20,21 @@ class _BST_Node:
     def __init__(self, value):
         """
         -------------------------------------------------------
-        Initializes a BST node containing value. Child pointers 
+        Initializes a BST node containing value. Child pointers
         are None, height is 1.
         Use: node = _BST_Node(value)
         -------------------------------------------------------
         Parameters:
             value - value for the node (?)
         Returns:
-            A _BST_Node object (_BST_Node)            
+            A _BST_Node object (_BST_Node)
         -------------------------------------------------------
         """
         self._value = deepcopy(value)
         self._left = None
         self._right = None
         self._height = 1
+        self._count = 0
 
     def _update_height(self):
         """
@@ -108,7 +111,7 @@ class BST:
     def insert(self, value):
         """
         -------------------------------------------------------
-        Inserts a copy of value into the bst. Values may appear 
+        Inserts a copy of value into the bst. Values may appear
         only once in a tree.
         Use: b = bst.insert(value)
         -------------------------------------------------------
@@ -125,7 +128,7 @@ class BST:
     def _insert_aux(self, node, value):
         """
         -------------------------------------------------------
-        Inserts a copy of value into the bst. Values may appear 
+        Inserts a copy of value into the bst. Values may appear
         only once in a tree.
         Private recursive operation called only by insert.
         Use: node, inserted = self._insert_aux(node, value)
@@ -189,7 +192,7 @@ class BST:
         """
         -------------------------------------------------------
         Removes a node with a value matching key from the bst.
-        Returns the value matched. Updates structure of bst as 
+        Returns the value matched. Updates structure of bst as
         required.
         Use: value = bst.remove(key)
         -------------------------------------------------------
@@ -235,29 +238,24 @@ class BST:
             if node._left is None and node._right is None:
                 # node has no children.
                 node = None
-                # your code here
-
             elif node._left is None:
                 # node has no left child.
                 node = node._right
-                # your code here
-
             elif node._right is None:
                 # node has no right child.
                 node = node._left
-                # your code here
-
             else:
                 # Node has two children
-                temp = node._right
-                while temp._left is not None:
-                    temp = temp._left
-                
-                node._value = temp._value
-                
-                node._right, _ = self._remove_aux(node._right, temp._value)
+                if node._left._right is None:
+                    # left child is replacement node
+                    repl_node = node._left
+                else:
+                    # find replacement node in right subtree of left node
+                    repl_node = self._delete_node_left(node._left)
+                    repl_node._left = node._left
 
-                # your code here
+                repl_node._right = node._right
+                node = repl_node
 
         if node is not None and value is not None:
             # If the value was found, update the ancestor heights.
@@ -269,37 +267,73 @@ class BST:
         -------------------------------------------------------
         Finds a replacement node for a node to be removed from the tree.
         Private operation called only by _remove_aux.
-        Use: repl_node = self._delete_node_left(node, node._right)
+        Use: repl_node = self._delete_node_left(parent)
         -------------------------------------------------------
         Parameters:
             parent - node to search for largest value (_BST_Node)
         Returns:
-            repl_node - the node that replaces the deleted node. This node 
+            repl_node - the node that replaces the deleted node. This node
                 is the node with the maximum value in the deleted node's left
                 subtree (_BST_Node)
         -------------------------------------------------------
         """
-        repl_node = parent
-        
-        while repl_node._right is not None:
-            parent = repl_node
-            repl_node = repl_node._right
-            
-        if repl_node._left is not None:
-            if parent._right == repl_node:
-                parent._right = repl_node._left
-            else:
-                parent._left = repl_node._left
+        child = parent._right
+
+        if child._right is None:
+            # child has largest value in left subtree
+            repl_node = child
+            # move child's left tree up
+            parent._right = child._left
         else:
-            if parent._right == repl_node:
-                parent._right = NONE
-            
-            else:
-                parent._left = None
+            repl_node = self._delete_node_left(child)
 
-        # your code here
-
+        # Recursively update all parent node heights
+        parent._update_height()
         return repl_node
+
+    def remove_root(self):
+        """
+        -------------------------------------------------------
+        Removes the root node and returns its value.
+        Use: value = bst._remove_root()
+        -------------------------------------------------------
+        Returns:
+            value - value in root.
+        -------------------------------------------------------
+        """
+        assert self._root is not None, "Cannot remove the room of an empty BST"
+
+        # Value has been found.
+        value = self._root._value
+        self._count -= 1
+        # Replace the root with another node.
+
+        if self._root._left is None and self._root._right is None:
+            # root has no children.
+            self._root = None
+        elif self._root._left is None:
+            # root has no left child.
+            self._root = self._root._right
+        elif self._root._right is None:
+            # root has no right child.
+            self._root = self._root._left
+        else:
+            # root has two children
+            if self._root._left._right is None:
+                # left child is replacement node
+                repl_node = self._root._left
+            else:
+                # find replacement node in right subtree of left node
+                repl_node = self._delete_node_left(self._root._left)
+                repl_node._left = self._root._left
+
+            repl_node._right = self._root._right
+            self._root = repl_node
+
+        if self._root is not None:
+            # Update the root height.
+            self._root._update_height()
+        return value
 
     def __contains__(self, key):
         """
@@ -313,20 +347,8 @@ class BST:
             True if the bst contains key, False otherwise.
         -------------------------------------------------------
         """
-        current = self._root
-        while current is not None:
-            if key < current._value:
-                current = current._left
-            
-            elif key > current._value:
-                current = current._right
-            
-            else:
-                return True
-            
-        return False
-        # your code here
-
+        value = self.retrieve(key)
+        return value is not None
 
     def height(self):
         """
@@ -339,45 +361,55 @@ class BST:
             maximum height of bst (int)
         -------------------------------------------------------
         """
-        def _height(node):
-            if node is None:
-                return 0
-            
-            else:
-                return 1 + max(_height(node._left), _height(node._right))
+        if self._root is None:
+            h = 0
+        else:
+            h = self._root._height
+        return h
 
-        # your code here
-        return _height(self._root)
-
-
-    def __eq__(self, target):
+    def is_identical(self, other):
         """
         ---------------------------------------------------------
-        Determines whether two BSTs are equal.
-        Values in self and target are compared and if all values are equal
-        and in the same location, returns True, otherwise returns False.
-        Use: equals = source == target
-        ---------------
+        Determines whether two BSTs are identical.
+        Use: b = bst.is_identical(other)
+        -------------------------------------------------------
         Parameters:
-            target - a bst (BST)
+            other - another bst (BST)
         Returns:
-            equals - True if source contains the same values
-                as target in the same location, otherwise False. (boolean)
+            identical - True if this bst contains the same values
+            in the same order as other, otherwise returns False (boolean)
         -------------------------------------------------------
         """
-        def _eq_aux(node1, node2):
-            if node1 is None and node2 is None:
-                return True
-            elif node1 is None or node2 is None:
-                return False
-            else:
-                return (node1._value == node2._value and
-                        _eq_aux(node1._left, node2._left) and
-                        _eq_aux(node1._right, node2._right))
-            
-        return self._eq_aux(self._root, target._root)
+        if self._count != other._count:
+            identical = False
+        else:
+            identical = self._is_identical_aux(self._root, other._root)
+        return identical
 
-
+    def _is_identical_aux(self, node1, node2):
+        """
+        ---------------------------------------------------------
+        Determines whether two subtrees are identical.
+        Use: b = self._is_identical_aux(node1, node2)
+        -------------------------------------------------------
+        Parameters:
+            node1 - node of the current BST (_BST_Node)
+            node2 - node of the rs BST (_BST_Node)
+        Returns:
+            identical - True if this subtree contains the same values as rs
+                subtree in the same order, otherwise returns False (boolean)
+        -------------------------------------------------------
+        """
+        if node1 is None and node2 is None:
+            # Reached a bottom of the tree.
+            identical = True
+        elif node1 is not None and node2 is not None \
+                and node1._value == node2._value and node1._height == node2._height:
+            identical = self._is_identical_aux(node1._left, node2._left) \
+                and self._is_identical_aux(node1._right, node2._right)
+        else:
+            identical = False
+        return identical
 
     def parent(self, key):
         """
@@ -393,20 +425,27 @@ class BST:
         """
         assert self._root is not None, "Cannot locate a parent in an empty BST"
 
+        # Find the node containing the key.
+        node = self._root
         parent = None
-        current = self._root
-        while current is not None:
-            if key < current._value:
-                parent = current
-                current = current._left
-            elif key > current._value:
-                parent = current
-                current = current._right
-            else:
-                return parent._value if parent else None
-        return None
-        # your code here
+        found = False
 
+        while node is not None and found is False:
+
+            if key < node._value:
+                parent = node
+                node = node._left
+            elif key > node._value:
+                parent = node
+                node = node._right
+            else:
+                found = True
+
+        if parent is None or not found:
+            value = None
+        else:
+            value = deepcopy(parent._value)
+        return value
 
     def parent_r(self, key):
         """
@@ -422,19 +461,40 @@ class BST:
         """
         assert self._root is not None, "Cannot locate a parent in an empty BST"
 
+        # Find the node containing the key _value.
+        return self._parent_aux(self._root, key, None)
 
-        def recurse_find_parent(node, parent, key):
-            if node is None:
-                return None
-            elif node._value == key:
-                return parent._value if parent else None
-            elif key < node._value:
-                return recurse_find_parent(node._left, node, key)
-            else:
-                return recurse_find_parent(node._right, node, key)
-    
-        return recurse_find_parent(self._root, None, key)
-
+    def _parent_aux(self, node, key, parent):
+        """
+        ---------------------------------------------------------
+        Returns the _value of the parent node in a bst given a _value.
+        Private recursive operation called only by parent_r.
+        Use: v = self._parent_aux(node, key, parent of node)
+        ---------------------------------------------------------
+        Parameters:
+            node - a BST node
+            key - a key _value
+            parent - the parent node of the current node
+        Returns:
+            value - the value of the parent node, None if it has no parent (?)
+        ---------------------------------------------------------
+        """
+        if node is None:
+            # Base Case: the key is not in the tree.
+            value = None
+        elif key < node._value:
+            # General Case: Search the left subtree.
+            value = self._parent_aux(node._left, key, node)
+        elif key > node._value:
+            # General Case: Search the right subtree.
+            value = self._parent_aux(node._right, key, node)
+        elif parent is None:
+            # Base Case: Value has been found, but without a parent node.
+            value = None
+        else:
+            # Base Case: Value has been found. Return the parent value.
+            value = deepcopy(parent._value)
+        return value
 
     def max(self):
         """
@@ -447,18 +507,15 @@ class BST:
         -------------------------------------------------------
         """
         assert self._root is not None, "Cannot find maximum of an empty BST"
+        # Find the node containing the largest _value.
+        # (It is the right-most node.)
+        node = self._root
 
-        # your code here
-        current = self._root
-        
-        if current is None:
-            return None 
-        
-        while current._right:
-            current = current._right
-        
-        return current._value
+        while node._right is not None:
+            node = node._right
 
+        value = deepcopy(node._value)
+        return value
 
     def max_r(self):
         """
@@ -472,15 +529,28 @@ class BST:
         """
         assert self._root is not None, "Cannot find maximum of an empty BST"
 
+        value = self._max_aux(self._root)
+        return value
 
-        def recurse_max(node):
-            if node._right is None:
-                return node._value
-            else:
-                return recurse_max(node._right)
-
-        return recurse_max(self._root)
-
+    def _max_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the largest value in a BST node. (Recursive algorithm)
+        Use: v = self._max_aux(node)
+        ---------------------------------------------------------
+        Parameters:
+            node - is_valid linked BST node (_BST_Node)
+        Returns:
+            value - a copy of the largest value in the node subtree (?)
+        ---------------------------------------------------------
+        """
+        # Find the node containing the largest _value.
+        # (It is the right-most node.)
+        if node._right is None:
+            value = deepcopy(node._value)
+        else:
+            value = self._max_aux(node._right)
+        return value
 
     def min(self):
         """
@@ -493,12 +563,15 @@ class BST:
         -------------------------------------------------------
         """
         assert self._root is not None, "Cannot find minimum of an empty BST"
+        # Find the node containing the smallest _value.
+        # (It is the left-most node.)
+        node = self._root
 
-        current = self._root
-        while current._left:
-            current = current._left
-        return current._value
+        while node._left is not None:
+            node = node._left
 
+        value = deepcopy(node._value)
+        return value
 
     def min_r(self):
         """
@@ -512,36 +585,64 @@ class BST:
         """
         assert self._root is not None, "Cannot find minimum of an empty BST"
 
-        def recurse_min(node):
-            if node._left is None:
-                return node._value
-            else:
-                return recurse_min(node._left)
+        value = self._min_aux(self._root)
+        return value
 
-        return recurse_min(self._root)
-
+    def _min_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the minimum value in a BST node. (Recursive algorithm)
+        Use: v = self._max_aux(node)
+        ---------------------------------------------------------
+        Parameters:
+            node - is_valid linked BST node (_BST_Node)
+        Returns:
+            value - a copy of the minimum value in the node subtree (?)
+        ---------------------------------------------------------
+        """
+        # Find the node containing the minimum _value.
+        # (It is the left-most node.)
+        if node._left is None:
+            value = deepcopy(node._value)
+        else:
+            value = self._min_aux(node._left)
+        return value
 
     def leaf_count(self):
         """
         ---------------------------------------------------------
         Returns the number of leaves (nodes with no children) in bst.
-        Use: count = bst.leaf_count()
+        Use: n = bst.leaf_count()
+        (Recursive algorithm)
         ---------------------------------------------------------
         Returns:
             count - number of nodes with no children in bst (int)
         ---------------------------------------------------------
         """
+        count = self._leaf_count_aux(self._root)
+        return count
 
-        def count_leaves(node):
-            if node is None:
-                return 0
-            elif not node._left and not node._right:
-                return 1
-            else:
-                return count_leaves(node._left) + count_leaves(node._right)
-
-        return count_leaves(self._root)
-
+    def _leaf_count_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of leaves (nodes with no children) in bst.
+        Use: count = bst.leaf_count()
+        ---------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            count - number of nodes with no children below node (int)
+        ---------------------------------------------------------
+        """
+        if node is None:
+            count = 0
+        elif node._left is None and node._right is None:
+            # Base case: node has no children.
+            count = 1
+        else:
+            count = self._leaf_count_aux(node._left) + \
+                self._leaf_count_aux(node._right)
+        return count
 
     def two_child_count(self):
         """
@@ -553,17 +654,31 @@ class BST:
             count - number of nodes with two children in bst (int)
         ----------------------------------------------------------
         """
+        return self._two_child_count_aux(self._root)
 
-        def count_two_children(node):
-            if node is None:
-                return 0
-            elif node._left and node._right:
-                return 1 + count_two_children(node._left) + count_two_children(node._right)
-            else:
-                return count_two_children(node._left) + count_two_children(node._right)
-
-        return count_two_children(self._root)
-
+    def _two_child_count_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of types of nodes in a BST node.
+        -------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            count - number of nodes with two children in bst (int)
+        ----------------------------------------------------------
+        """
+        if node is None:
+            # Base case: node is empty.
+            count = 0
+        elif node._left is not None and node._right is not None:
+            # General case: node has two children.
+            count = 1 + self._two_child_count_aux(node._left) + \
+                self._two_child_count_aux(node._right)
+        else:
+            # General case: node has one child.
+            count = self._two_child_count_aux(node._left) + \
+                self._two_child_count_aux(node._right)
+        return count
 
     def one_child_count(self):
         """
@@ -575,17 +690,33 @@ class BST:
             count - number of nodes with one child in bst (int)
         ----------------------------------------------------------
         """
+        return self._one_child_count_aux(self._root)
 
-        def count_one_child(node):
-            if node is None:
-                return 0
-            elif (node._left and not node._right) or (not node._left and node._right):
-                return 1 + count_one_child(node._left) + count_one_child(node._right)
-            else:
-                return count_one_child(node._left) + count_one_child(node._right)
-
-        return count_one_child(self._root)
-
+    def _one_child_count_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of types of nodes in a BST node.
+        -------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            count - number of nodes with one child in bst (int)
+        ----------------------------------------------------------
+        """
+        if node is None:
+            # Base case: empty node..
+            count = 0
+        elif node._left is None and node._right is not None:
+            # General case: node has one child.
+            count = 1 + self._one_child_count_aux(node._right)
+        elif node._left is not None and node._right is None:
+            # General case: node has one child.
+            count = 1 + self._one_child_count_aux(node._left)
+        else:
+            # General case: node has two children.
+            count = self._one_child_count_aux(node._left) + \
+                self._one_child_count_aux(node._right)
+        return count
 
     def node_counts(self):
         """
@@ -599,51 +730,161 @@ class BST:
             two - number of nodes with two children (int)
         ----------------------------------------------------------
         """
-
-        zero, one, two = 0, 0, 0
-        def count_nodes(node):
-            nonlocal zero, one, two
-            if node is None:
-                return
-            left = node._left
-            right = node._right
-            if not left and not right:
-                zero += 1
-            elif left and right:
-                two += 1
-            else:
-                one += 1
-            count_nodes(left)
-            count_nodes(right)
-
-        count_nodes(self._root)
+        zero, one, two = self._node_counts_aux(self._root)
         return zero, one, two
 
+    def _node_counts_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of types of nodes in a BST node.
+        -------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            zero - number of nodes with zero children (int)
+            one - number of nodes with one child (int)
+            two - number of nodes with two children (int)
+        ----------------------------------------------------------
+        """
+        if node is None:
+            # Base case: no node.
+            one = 0
+            two = 0
+            zero = 0
+        elif node._left is None and node._right is None:
+            # Base case: node has no children.
+            one = 0
+            two = 0
+            zero = 1
+        elif node._left is not None and node._right is None:
+            # General case: node has a single left child.
+            zero, one, two = self._node_counts_aux(node._left)
+            one += 1
+        elif node._left is None and node._right is not None:
+            # General case: node has a single right child.
+            zero, one, two = self._node_counts_aux(node._right)
+            one += 1
+        else:
+            # General case: node has two children. Get node counts
+            # from both children.
+            zero_l, one_l, two_l = self._node_counts_aux(node._left)
+            zero_r, one_r, two_r = self._node_counts_aux(node._right)
+            zero = zero_l + zero_r
+            one = one_l + one_r
+            # Count the current node as one with two children.
+            two = two_l + two_r + 1
+        return zero, one, two
+
+    def total_height(self):
+        """
+        ---------------------------------------------------------
+        Returns the total heights of a bst.
+        ---------------------------------------------------------
+        Returns:
+            the total height count - i.e. the sum of all the node heights
+            in the tree (int)
+        ---------------------------------------------------------
+        """
+        return self._total_height_aux(self._root)
+
+    def _total_height_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the total heights of a bst.
+        ---------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            total_height - the total height count - i.e. the sum of all the
+            node heights in the tree (int)
+        ---------------------------------------------------------
+        """
+        if node is None:
+            total_height = 0
+        else:
+            total_height = node._height + self._total_height_aux(node._left) + \
+                self._total_height_aux(node._right)
+        return total_height
+
+    def mirror(self):
+        """
+        ---------------------------------------------------------
+        Creates a mirror version of a BST. All nodes are swapped with nodes on
+        the other side the tree. Nodes may take the place of an empty spot.
+        The resulting tree is a mirror image of the original tree. (Note that
+        the mirrored tree is not a BST.) The original BST is unchanged.
+        Use: tree = bst.mirror()
+        ---------------------------------------------------------
+        Returns:
+            tree - a mirror version of subtree of node.
+        ---------------------------------------------------------
+        """
+        tree = BST()
+        tree._root = self._mirror_aux(self._root)
+        return tree
+
+    def _mirror_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Creates a mirror version of a BST. All nodes are swapped with nodes on
+        the other side the tree. Nodes may take the place of an empty spot.
+        The resulting tree is a mirror image of the original tree. (Note that
+        the mirrored BST is no longer a BST itself.)
+        Use: self._mirror_aux(node)
+        ---------------------------------------------------------
+        Parameters:
+            node - a binary tree node (_BST_Node)
+        Returns:
+            tree - a mirror version of subtree of node.
+        ---------------------------------------------------------
+        """
+        if node is not None:
+            new_node = _BST_Node(node._value)
+            new_node._right = self._mirror_aux(node._left)
+            new_node._left = self._mirror_aux(node._right)
+        else:
+            new_node = None
+        return new_node
 
     def is_balanced(self):
         """
         ---------------------------------------------------------
-        Returns whether a bst is balanced, i.e. the difference in
+        Returns whether a bst is has_balanced, i.e. the difference in
         height between all the bst's node's left and right subtrees is <= 1.
         Use: b = bst.is_balanced()
         ---------------------------------------------------------
         Returns:
-            balanced - True if the bst is balanced, False otherwise (boolean)
+            has_balanced - True if the bst is has_balanced, False otherwise (boolean)
         ---------------------------------------------------------
         """
+        has_balanced = self._is_balanced_aux(self._root)
+        return has_balanced
 
-        def check_balance(node):
-            if node is None:
-                return 0, True
-            left_height, left_balanced = check_balance(node._left)
-            right_height, right_balanced = check_balance(node._right)
-            balanced = (left_balanced and right_balanced and abs(left_height - right_height) <= 1)
-            height = 1 + max(left_height, right_height)
-            return height, balanced
-
-        _, balance = check_balance(self._root)
-        return balance
-
+    def _is_balanced_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Determines whether the BST is is_balanced.
+        Private operation called only by _is_valid_aux.
+        Use: b = self._balanced_aux(node)
+        ---------------------------------------------------------
+        Parameters:
+            node - the node to check the balance of (_BST_Node)
+        Returns:
+            has_balanced - True if node is is has_balanced, False otherwise (boolean)
+        ---------------------------------------------------------
+        """
+        if node is None or node._height == 1:
+            # Base case: node is empty or a leaf, so no children.
+            has_balanced = True
+        elif abs(self._node_height(node._left) -
+                 self._node_height(node._right)) > 1:
+            # Base case: left or right subtree is too deep.
+            has_balanced = False
+        else:
+            # General case: check the children of node.
+            has_balanced = self._is_balanced_aux(node._left) and \
+                self._is_balanced_aux(node._right)
+        return has_balanced
 
     def _node_height(self, node):
         """
@@ -676,24 +917,53 @@ class BST:
             value - If bst contains key, returns value, else returns None.
         -------------------------------------------------------
         """
+        # Find the node containing the key _value.
+        value = self._retrieve_r_aux(self._root, key)
+        return value
 
-        def retrieve_recursive(node, key):
-            if node is None:
-                return None
-            elif key < node._value:
-                return retrieve_recursive(node._left, key)
-            elif key > node._value:
-                return retrieve_recursive(node._right, key)
+    def _retrieve_r_aux(self, current, key):
+        """
+        -------------------------------------------------------
+        Retrieves a _value in a BST.
+        -------------------------------------------------------
+        Parameters:
+            current - a bst node (_BST_Node)
+            key - data to search for (?)
+        Returns:
+            value - contains key, else returns None (?)
+        -------------------------------------------------------
+        """
+        if current is None:
+            # Base case: at bottom of tree and key not found.
+            value = None
+        else:
+            if key < current._value:
+                value = self._retrieve_r_aux(current._left, key)
+            elif key > current._value:
+                value = self._retrieve_r_aux(current._right, key)
             else:
-                return node._value
+                value = deepcopy(current._value)
+        return value
 
-        return retrieve_recursive(self._root, key)
-
+    def average_height(self):
+        """
+        ---------------------------------------------------------
+        Returns the average height of a bst.
+        ---------------------------------------------------------
+        Returns:
+            avg_height - total height count divided by the number of nodes
+                in the tree (int)
+        ---------------------------------------------------------
+        """
+        count = self._count
+        total_height = self.total_height()
+        avg_height = total_height / count
+        return avg_height
 
     def is_valid(self):
         """
         ---------------------------------------------------------
-        Determines if a tree is a valid BST, i.e. the values in all left nodes
+        Determines if a tree is a is_valid BST, i.e. the values in all left nodes
         are smaller than their parent, and the values in all right nodes are
         larger than their parent, and height of any node is 1 + max height of
         its children.
@@ -703,18 +973,42 @@ class BST:
             valid - True if tree is a BST, False otherwise (boolean)
         ---------------------------------------------------------
         """
+        valid = self._is_valid_aux(self._root, None, None)
+        return valid
 
-        def is_valid_node(node, low, high):
-            if node is None:
-                return True
-            elif not (low < node._value < high):
-                return False
-            else:
-                return (is_valid_node(node._left, low, node._value) and
-                        is_valid_node(node._right, node._value, high))
+    def _is_valid_aux(self, node, min_node, max_node):
+        """
+        ---------------------------------------------------------
+        Determines if a subtree is a is_valid BST.
+        ---------------------------------------------------------
+        Parameters:
+            node - a binary tree node (_BST_Node)
+            min_node - the node with the minimum value for the current tree (_BST_Node)
+            max_node - the node with the maximum value for the current tree (_BST_Node)
+        Returns:
+            valid - True if node is root of a valid BST, False otherwise (boolean)
+        ---------------------------------------------------------
+        """
+        if node is None:
+            valid = True
+        elif min_node is not None and node._value <= min_node._value:
+            # print("BST Left Violation at value: {}".format(node._value))
+            valid = False
+        elif max_node is not None and node._value >= max_node._value:
+            # print("BST Right Violation at value: {}".format(node._value))
+            valid = False
+        elif node._height != max(self._node_height(node._left), self._node_height(node._right)) + 1:
+            # print("Height Violation at value: {}".format(node._value))
+            valid = False
+        else:
+            # node becomes max node of left tree, min node of right tree
+            valid = self._is_valid_aux(node._left, min_node, node) \
+                and self._is_valid_aux(node._right, node, max_node)
+        return valid
 
-        return is_valid_node(self._root, float('-inf'), float('inf'))
-
+    """
+    ---------------------------------------------------------
+    """
 
     def inorder(self):
         """
@@ -726,12 +1020,30 @@ class BST:
             a - copy of the contents of the tree in inorder (list of ?)
         -------------------------------------------------------
         """
+        a = []
+        self._inorder_aux(self._root, a)
+        return a
 
-        def inorder_recursive(node):
-            return (inorder_recursive(node._left) + [node._value] + 
-                    inorder_recursive(node._right)) if node else []
-
-        return inorder_recursive(self._root)
+    def _inorder_aux(self, node, a):
+        """
+        ---------------------------------------------------------
+        Traverses node subtree in inorder. a contains the contents of
+        node and its children in inorder.
+        Private recursive operation called only by inorder.
+        Use: self._inorder_aux(node, a)
+        ---------------------------------------------------------
+        Parameters:
+            node - an BST node (_BST_Node)
+            a - target list of data (list of ?)
+        Returns:
+            None
+        ---------------------------------------------------------
+        """
+        if node is not None:
+            self._inorder_aux(node._left, a)
+            a.append(deepcopy(node._value))
+            self._inorder_aux(node._right, a)
+        return
 
     def preorder(self):
         """
@@ -743,13 +1055,30 @@ class BST:
             a - copy of the contents of the tree in preorder (list of ?)
         -------------------------------------------------------
         """
+        a = []
+        self._preorder_aux(self._root, a)
+        return a
 
-        def preorder_recursive(node):
-            return ([node._value] + preorder_recursive(node._left) +
-                    preorder_recursive(node._right)) if node else []
-
-        return preorder_recursive(self._root)
-
+    def _preorder_aux(self, node, a):
+        """
+        ---------------------------------------------------------
+        Traverses node subtree in preorder. a contains the contents of
+        node and its children in preorder.
+        Private recursive operation called only by preorder.
+        Use: self._preorder_aux(node, a)
+        ---------------------------------------------------------
+        Parameters:
+            node - an BST node (_BST_Node)
+            a - target of data (list of ?)
+        Returns:
+            None
+        ---------------------------------------------------------
+        """
+        if node is not None:
+            a.append(deepcopy(node._value))
+            self._preorder_aux(node._left, a)
+            self._preorder_aux(node._right, a)
+        return
 
     def postorder(self):
         """
@@ -761,13 +1090,30 @@ class BST:
             a - copy of the contents of the tree in postorder (list of ?)
         -------------------------------------------------------
         """
+        a = []
+        self._postorder_aux(self._root, a)
+        return a
 
-        def postorder_recursive(node):
-            return (postorder_recursive(node._left) +
-                    postorder_recursive(node._right) + [node._value]) if node else []
-
-        return postorder_recursive(self._root)
-
+    def _postorder_aux(self, node, a):
+        """
+        ---------------------------------------------------------
+        Traverses node subtree in postorder. a contains the contents of
+        node and its children in postorder.
+        Private recursive operation called only by postorder.
+        Use: self._postorder_aux(node, a)
+        ---------------------------------------------------------
+        Parameters:
+            node - an BST node (_BST_Node)
+            a - target of data (list of ?)
+        Returns:
+            None
+        ---------------------------------------------------------
+        """
+        if node is not None:
+            self._postorder_aux(node._left, a)
+            self._postorder_aux(node._right, a)
+            a.append(deepcopy(node._value))
+        return
 
     def levelorder(self):
         """
@@ -780,18 +1126,96 @@ class BST:
             (list of ?)
         -------------------------------------------------------
         """
-
         values = []
-        queue = [self._root] if self._root else []
-        while queue:
-            node = queue.pop(0)
-            values.append(node._value)
-            if node._left:
-                queue.append(node._left)
-            if node._right:
-                queue.append(node._right)
+
+        if self._root is not None:
+            # Put the nodes for one level into a queue.
+            queue = []
+            queue.append(self._root)
+
+            while len(queue) > 0:
+                # Add a copy of the data to the sublist
+                node = queue.pop(0)
+                values.append(deepcopy(node._value))
+
+                if node._left is not None:
+                    queue.append(node._left)
+                if node._right is not None:
+                    queue.append(node._right)
         return values
 
+    """
+    ---------------------------------------------------------
+    """
+
+    def valid_avl(self):
+        """
+        ---------------------------------------------------------
+        Determines if an AVL is is_valid.
+        Use: b = avl.is_valid()
+        ---------------------------------------------------------
+        Returns:
+            is_valid - True if the tree is an AVL, False otherwise.
+        ---------------------------------------------------------
+        """
+        is_valid = self.valid_avl_aux(self._root)
+        return is_valid
+
+    def valid_avl_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Helper function to determine the AVL validity of node.
+        Private operation called only by is_valid.
+        Use: b = self._is_valid_aux(node)
+        ---------------------------------------------------------
+        Parameters:
+            node - the node to check the validity of (_AVLNode)
+        Returns:
+            is_valid - True if node is an AVL, False otherwise (boolean)
+        ---------------------------------------------------------
+        """
+        if node is None or (node._left is None and node._right is None):
+            # Base case: node is empty or a leaf, so tree must be an AVL.
+            is_valid = True
+        elif abs(self._node_height(node._left) -
+                 self._node_height(node._right)) > 1:
+            # Base case: left or right subtree is too deep.
+            # print("Height Violation at value: {}".format(node._value))
+            is_valid = False
+        elif (node._left is not None and node._left._value > node._value) \
+                or (node._right is not None and node._right._value < node._value):
+            # Base case: does not follow the BST property.
+            # print("Binary Tree Violation")
+            is_valid = False
+        else:
+            # General case: check the nodes children for validity.
+            is_valid = self.valid_avl_aux(node._left) and \
+                self.valid_avl_aux(node._right)
+        return is_valid
+
+    def preorder_i(self):
+        """
+        -------------------------------------------------------
+        Generates a list of the contents of the tree in preorder order.
+        (Iterative algorithm)
+        Use: bst.preorder_i()
+        -------------------------------------------------------
+        Returns:
+            a - copy of the contents of the tree in preorder (list of ?)
+        -------------------------------------------------------
+        """
+        a = []
+        stack = []
+        stack.append(self._root)
+
+        while len(stack) > 0:
+            node = stack.pop()
+
+            if node is not None:
+                a.append(deepcopy(node._value))
+                stack.append(node._right)
+                stack.append(node._left)
+        return a
 
     def count(self):
         """
@@ -803,15 +1227,70 @@ class BST:
             number - count of nodes in tree (int)
         ----------------------------------------------------------
         """
+        number = self._count_aux(self._root)
+        return number
 
-        def count_nodes(node):
-            if not node:
-                return 0
+    def _count_aux(self, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of nodes in a BST subtree.
+        -------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            number - count of nodes in the current subtree (int)
+        ----------------------------------------------------------
+        """
+        if node is None:
+            # Base case: node does not exist
+            number = 0
+        else:
+            # General case: node exists.
+            number = 1 + self._count_aux(node._left) + \
+                self._count_aux(node._right)
+        return number
+
+    def count_apply(self, func):
+        """
+        ---------------------------------------------------------
+        Returns the number of values in a BST where func(value) is True.
+        Use: number = bst.count_apply(func)
+        -------------------------------------------------------
+        Parameters:
+            func - a function that given a value in the bst returns
+                True for some condition, otherwise returns False.
+        Returns:
+            number - count of nodes in tree where func(value) is True (int)
+        ----------------------------------------------------------
+        """
+        number = self._count_apply_aux(func, self._root)
+        return number
+
+    def _count_apply_aux(self, func, node):
+        """
+        ---------------------------------------------------------
+        Returns the number of nodes in a BST subtree
+        where the result of calling func(value) is True.
+        Use: number = self.__count_apply_aux(func, node)
+        -------------------------------------------------------
+        Parameters:
+            node - a BST node (_BST_Node)
+        Returns:
+            number - count of nodes in the current subtree (int)
+        ----------------------------------------------------------
+        """
+        if node is None:
+            # Base case: node does not exist
+            number = 0
+        else:
+            # General case: node exists.
+            if func(node._value):
+                number = 1
             else:
-                return 1 + count_nodes(node._left) + count_nodes(node._right)
-
-        return count_nodes(self._root)
-
+                number = 0
+            number = number + self._count_apply_aux(func, node._left) + \
+                self._count_apply_aux(func, node._right)
+        return number
 
     def __iter__(self):
         """
@@ -839,4 +1318,3 @@ class BST:
                     queue.append(node._left)
                 if node._right is not None:
                     queue.append(node._right)
-                    
